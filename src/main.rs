@@ -22,27 +22,31 @@ fn main() -> anyhow::Result<()> {
 
     let mut ctx = module.make_context();
     let mut builder_context = FunctionBuilderContext::new();
-    ctx.func.signature.returns.push(AbiParam::new(int));
-    let mut builder = FunctionBuilder::new(&mut ctx.func, &mut builder_context);
-    let entry_block = builder.create_block();
-    // builder.append_block_params_for_function_params(entry_block);
-    builder.switch_to_block(entry_block);
-    builder.seal_block(entry_block);
-    let ret = builder.ins().iconst(int, 42);
-    // return 42;
-    builder.ins().return_(&[ret]);
-    builder.finalize();
 
-    let id = module.declare_function(
-        "main",
-        cranelift_module::Linkage::Export,
-        &ctx.func.signature,
-    )?;
-    module.define_function(
-        id,
-        &mut ctx,
-        &mut cranelift_codegen::binemit::NullTrapSink {},
-    )?;
+    {
+        ctx.func.signature.returns.push(AbiParam::new(int));
+        let mut builder = FunctionBuilder::new(&mut ctx.func, &mut builder_context);
+        let entry_block = builder.create_block();
+        // builder.append_block_params_for_function_params(entry_block);
+        builder.switch_to_block(entry_block);
+        builder.seal_block(entry_block);
+        let ret = builder.ins().iconst(int, 42);
+        // return 42;
+        builder.ins().return_(&[ret]);
+        builder.finalize();
+
+        let id = module.declare_function(
+            "main",
+            cranelift_module::Linkage::Export,
+            &ctx.func.signature,
+        )?;
+        module.define_function(
+            id,
+            &mut ctx,
+            &mut cranelift_codegen::binemit::NullTrapSink {},
+        )?;
+        module.clear_context(&mut ctx);
+    }
 
     let obj = module.finish();
     let bytes = obj.emit()?;
