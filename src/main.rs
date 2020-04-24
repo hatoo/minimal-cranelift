@@ -20,7 +20,7 @@ fn main() -> anyhow::Result<()> {
     // このISAにおけるint
     let int = module.target_config().pointer_type();
 
-    let mut ctx = codegen::Context::new();
+    let mut ctx = module.make_context();
     let mut builder_context = FunctionBuilderContext::new();
     ctx.func.signature.returns.push(AbiParam::new(int));
     let mut builder = FunctionBuilder::new(&mut ctx.func, &mut builder_context);
